@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  This script gives the convenience of work, which cannot be given by OZON with a capital of 1 billion rubles
-// @author       Usachenko Antonuy
+// @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=ozon-dostavka.ru
 // @grant        none
