@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  This script gives the convenience of work, which cannot be given by OZON with a capital of 1 billion rubles
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving
@@ -21,7 +21,7 @@
     // regex for find number
 	const regexUsusal = /'\d*\d-\d\d*'/g;
     const regexCUR = /'CUR-\d*'/g;
-    const regexMixed = /'\d*\d-\d\d*'|'CUR-\d*'/g;
+    const regexMixed = /'\d{1,5}-\d{1,3}'|'CUR-\d*'/g;
     const regexResultFilter = /(?<=\').+?(?=\')/g;
     // fields
     var superWindow;
@@ -102,7 +102,7 @@
         else{
             console.log("clear match info: " + match);
             //
-            if(CanRepeatSpeech || match != prevMatch){
+            if(match != prevMatch){
                 // Refresh superWindow
                 console.log("Refresh superWindow and speech text");
                 var result = match.match(regexResultFilter)[0];
@@ -157,34 +157,6 @@
         CanRepeatSpeech = true;
     }
     //
-    //
-    //
-    //------------BARCODE READER------------------
-    let code = "";
-    let reading = false;
-    let prevCode = "";
-
-    document.addEventListener('keypress', e => {
-        //usually scanners throw an 'Enter' key at the end of read
-    if (e.keyCode === 13) {
-          if(code.length > 10) {
-            console.log(code);
-            /// code ready to use
-            prevCode = code;
-            code = "";
-         }
-    } else {
-        code += e.key; //while this is not an 'enter' it stores the every key
-    }
-
-    //run a timeout of 200ms at the first read and clear everything
-    if(!reading) {
-        reading = true;
-        setTimeout(() => {
-            code = "";
-            reading = false;
-        }, 200);// 200 works fine for me but you can adjust it
-    }
 });
 
 })();
