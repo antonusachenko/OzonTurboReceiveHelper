@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.4.1
 // @description  This script gives the convenience of work, which cannot be given by OZON with a capital of 1 billion rubles
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving
@@ -157,6 +157,34 @@
         CanRepeatSpeech = true;
     }
     //
+    //
+    //
+    //------------BARCODE READER------------------
+    let code = "";
+    let reading = false;
+    let prevCode = "";
+
+    document.addEventListener('keypress', e => {
+        //usually scanners throw an 'Enter' key at the end of read
+    if (e.keyCode === 13) {
+          if(code.length > 10) {
+            console.log(code);
+            /// code ready to use
+            prevCode = code;
+            code = "";
+         }
+    } else {
+        code += e.key; //while this is not an 'enter' it stores the every key
+    }
+
+    //run a timeout of 200ms at the first read and clear everything
+    if(!reading) {
+        reading = true;
+        setTimeout(() => {
+            code = "";
+            reading = false;
+        }, 200);// 200 works fine for me but you can adjust it
+    }
 });
 
 })();
