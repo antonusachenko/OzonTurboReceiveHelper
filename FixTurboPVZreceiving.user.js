@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.5.0
+// @version      0.5.1
 // @description  This script gives the convenience of work, which cannot be given by OZON with a capital of 1 billion rubles
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving
