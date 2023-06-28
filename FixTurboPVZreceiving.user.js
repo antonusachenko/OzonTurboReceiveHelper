@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.4.1
+// @version      0.5.0
 // @description  This script gives the convenience of work, which cannot be given by OZON with a capital of 1 billion rubles
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving
@@ -11,55 +11,56 @@
 
 (function() {
     'use strict';
-    // Constans
-    const receiveDetectBlock = document.getElementsByClassName("receivingDrawerWrapper_WAXaA");
-    const receiveHeaderBlock = document.getElementsByClassName("receivingDrawerHeader_pwTz7");
-    const receiveMessageBlock = document.getElementsByClassName("logItemList_mw6zT");
-    const receiveDetectBlockClassName = ".receivingDrawerWrapper_WAXaA";
-    const receiveHeaderBlockClassName = ".receivingDrawerHeader_pwTz7";
-    const receiveMessageBlockClassName = ".logItemList_mw6zT";
+    const receiveMessageBlock = document.getElementsByClassName("receivingDrawerWrapper_8hwfI");
+    const receiveMessage = document.getElementsByClassName("logItemWrapper_hn0+X");
+    const receiveForkClassName = ".portalTargetContainer_ptBjF";
+
+    const autoreceiveXbutton = document.getElementsByClassName("closeIcon_I0cgh");
+    const autoreceiveEndButton = document.getElementsByClassName("button_X+Guw");
+    const autoreceiveButton = document.getElementsByClassName("button_X+Guw");
+
     // regex for find number
 	const regexUsusal = /'\d*\d-\d\d*'/g;
     const regexCUR = /'CUR-\d*'/g;
     const regexMixed = /'\d{1,5}-\d{1,3}'|'CUR-\d*'/g;
     const regexResultFilter = /(?<=\').+?(?=\')/g;
+
     // fields
     var superWindow;
     var superWindowText;
     var innerHTML;
     var prevMatch;
     var CanRepeatSpeech = true;
-	//
 
-    //
+    var autoreceiveXbutton_Listener;
+    var autoreceiveEndButton_Listener;
+    var autoreceiveButton_Listener;
+
+    var isRecieveActive;
+
+
     // ------------ Start ------------
-    //
+
     console.log("Plugin ready to work");
-    //
-    //
+
     // Try to start Observer
     addObserverIfDesiredNodeAvailable();
-    //
-    //
-    //
-    //
-    //
-    //
+    DrawSuperWindow();
+
     // ----------- Functions ------------
-    //
-    //
+
     function DrawSuperWindow(){
         //Draw new element SuperWindow
         superWindow = document.createElement("div");
         superWindow.id = "superNumber";
-        ShowSuperWindow();
         document.body.appendChild(superWindow);
         superWindowText = document.createElement("p");
         superWindow.appendChild(superWindowText);
         superWindowText.style.cssText = 'font-size: 20vh;text-align: center;line-height: 400px;';
         superWindowText.innerHTML = "00-0";
+        HideSuperWindows();
     }
-    //
+    
     function Speak(text) {
         var text1 = text.match(/\d+(?=\-)/);
         var text2 = text.match(/[^-]*$/);
@@ -75,22 +76,51 @@
         message.text = textResult;
         window.speechSynthesis.speak(message)
     }
-    //
+    
     function ShowSuperWindow(){
-        superWindow.style.cssText = 'z-index:9999999999;position:fixed;display:table;align-items:center;top:calc(50% - 200px);left:100px;width:750px;height:400px;border-radius: 30px;-moz-border-radius:30px;background-color: #f2f2f2; Display: block;box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);';
+        // old
+        //superWindow.style.cssText = 'z-index:9999999999;position:fixed;display:table;align-items:center;top:calc(50% - 200px);left:100px;width:750px;height:400px;border-radius: 30px;-moz-border-radius:30px;background-color: #f2f2f2; Display: block;box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);';
+        // new
+        superWindow.style.cssText = 'z-index:9999999999;  position:fixed; display:table;  align-items:center;  top:calc(50% - 200px); left:100px;  width:750px; height:400px;  border-radius: 30px;  -moz-border-radius:30px;  Display: block;  background: rgb(215, 231, 245);  border: solid;  border-width: 30px; border-color: rgb( 232, 244, 255 );';
     }
     function HideSuperWindows(){
         superWindow.style.cssText = 'Display: none';
     }
-    //
+    
     function ObserverDetect(){
         console.log("REFRESH WAS DETECT");
+        
         //
-		innerHTML = receiveMessageBlock[0].firstChild.lastChild.innerHTML;
-        UpdateResult();
+        if (receiveMessageBlock.length == 0){
+            isRecieveActive = false;
+            HideSuperWindows();
+            messageObserver.disconnect();
+            console.log("MESSAGE OBSERVE STOPPED");
+        }
+        else{
+            isRecieveActive = true;
+            ShowSuperWindow();
+            Subscribe();
+            var element = receiveMessageBlock[0];
+            messageObserver.observe(element, {childList: true});
+            console.log("MESSAGE OBSERVE STARTED");
+        }
     }
-    //
-    //
+
+    function MessageObserverDetect(){
+        console.log("MESSAGE WAS DETECT");
+
+        //
+        if (isRecieveActive){
+            if(receiveMessage[0] != null){
+                innerHTML = receiveMessage[0].children[1].innerHTML;
+                console.log("innerHTML below: ");
+                console.log(innerHTML);
+                UpdateResult();
+            }
+        }
+    }
+
     function UpdateResult() {
         var match = innerHTML.match(regexMixed)[0];
         //
@@ -120,30 +150,20 @@
         }
 
     }
-    //
-    // Create Observer
+
+    // ------ Create Observers ---------
+
     var observer = new MutationObserver(ObserverDetect);
+    //
     console.log("Observer created");
     // Add observer if desired element exist
     function addObserverIfDesiredNodeAvailable() {
-        var elementNode = document.querySelectorAll(receiveMessageBlockClassName)[0]; //was detect block
+        var elementNode = document.querySelectorAll(receiveForkClassName)[0]; //was detect block
         if(elementNode) {
             var config = {childList: true};
             // Start observing the target node for configured mutations
             observer.observe(elementNode, config);
             console.log("Observer started");
-            // Draw super window
-            DrawSuperWindow();
-            // Add listener for close button
-                var closeButtonNode = document.getElementsByClassName("el-drawer__close-btn")[0];
-                closeButtonNode.addEventListener("click", function() {
-                HideSuperWindows();
-            });
-            // Add listener for open Autorecevier button
-                var openButtonNode = document.getElementsByClassName("el-button--primary")[1];
-                openButtonNode.addEventListener("click", function() {
-                ShowSuperWindow();
-            });
         }
         else{
             // The node we need does not exist yet.
@@ -152,38 +172,28 @@
             console.log("Element not found, restart the function AddObserverIfDesuredNodeAvailable in 0.5 sec");
         }
     }
+
+    var messageObserver = new MutationObserver(MessageObserverDetect);
+    //
+    console.log("MessageObserver created");
+        //reference:
+        //  messageObserver.observe(document.querySelectorAll(receiveMessageBlock)[0], {childList: true});
+        //  messageObserver.disconnect();
+
+
     //
     function ResetTimer(){
         CanRepeatSpeech = true;
     }
-    //
-    //
-    //
-    //------------BARCODE READER------------------
-    let code = "";
-    let reading = false;
-    let prevCode = "";
 
-    document.addEventListener('keypress', e => {
-        //usually scanners throw an 'Enter' key at the end of read
-    if (e.keyCode === 13) {
-          if(code.length > 10) {
-            console.log(code);
-            /// code ready to use
-            prevCode = code;
-            code = "";
-         }
-    } else {
-        code += e.key; //while this is not an 'enter' it stores the every key
+    function Subscribe(){
+        autoreceiveXbutton_Listener = autoreceiveXbutton[0].addEventListener("click", HideSuperWindows);
+        autoreceiveEndButton_Listener = autoreceiveEndButton[8].addEventListener("click", HideSuperWindows);
     }
 
-    //run a timeout of 200ms at the first read and clear everything
-    if(!reading) {
-        reading = true;
-        setTimeout(() => {
-            code = "";
-            reading = false;
-        }, 200);// 200 works fine for me but you can adjust it
+    function Unsubscribe(){
+        autoreceiveXbutton_Listener = null;
+        autoreceiveEndButton_Listener = null; // idk another method in this situation lmao
     }
 });
 
