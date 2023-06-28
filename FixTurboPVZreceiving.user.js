@@ -195,6 +195,5 @@
         autoreceiveXbutton_Listener = null;
         autoreceiveEndButton_Listener = null; // idk another method in this situation lmao
     }
-});
 
 })();
