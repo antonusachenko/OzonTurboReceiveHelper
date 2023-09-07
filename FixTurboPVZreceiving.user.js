@@ -1,28 +1,27 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.5.1
-// @description  This script gives the convenience of work, which cannot be given by OZON with a capital of 1 billion rubles
+// @version      0.6.0
+// @description  This script provides the convenience of work, which OZON cannot provide with a capital of more than 400 billion rubles.
 // @author       Usachenko Antony
-// @match        https://pvz.ozon-dostavka.ru/receiving
+// @match        https://pvz.ozon-dostavka.ru/receiving/receive
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=ozon-dostavka.ru
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
-    const receiveMessageBlock = document.getElementsByClassName("receivingDrawerWrapper_8hwfI");
-    const receiveMessage = document.getElementsByClassName("logItemWrapper_hn0+X");
-    const receiveForkClassName = ".portalTargetContainer_ptBjF";
-
-    const autoreceiveXbutton = document.getElementsByClassName("closeIcon_I0cgh");
-    const autoreceiveEndButton = document.getElementsByClassName("button_X+Guw");
-    const autoreceiveButton = document.getElementsByClassName("button_X+Guw");
+    const receiveMessageBlock = document.getElementsByClassName("informer_U-Jto");
+    const receiveMessage = document.getElementsByClassName("addressBadge_yj9SR");
+    const receiveForkClassName = ".logs_kiV3I";
 
     // regex for find number
-	const regexUsusal = /'\d*\d-\d\d*'/g;
-    const regexCUR = /'CUR-\d*'/g;
-    const regexMixed = /'\d{1,5}-\d{1,3}'|'CUR-\d*'/g;
+    const regexMixed = /\d{1,5}-\d{1,3}|CUR-\d*/g;
+
+    //unusable now regex
+    const regexMixedOld = /'\d{1,5}-\d{1,3}'|'CUR-\d*'/g;
+	const regexUsusalOld = /'\d*\d-\d\d*'/g;
+    const regexCUROld = /'CUR-\d*'/g;
     const regexResultFilter = /(?<=\').+?(?=\')/g;
 
     // fields
@@ -31,10 +30,6 @@
     var innerHTML;
     var prevMatch;
     var CanRepeatSpeech = true;
-
-    var autoreceiveXbutton_Listener;
-    var autoreceiveEndButton_Listener;
-    var autoreceiveButton_Listener;
 
     var isRecieveActive;
 
@@ -50,15 +45,17 @@
     // ----------- Functions ------------
 
     function DrawSuperWindow(){
-        //Draw new element SuperWindow
-        superWindow = document.createElement("div");
-        superWindow.id = "superNumber";
-        document.body.appendChild(superWindow);
-        superWindowText = document.createElement("p");
-        superWindow.appendChild(superWindowText);
-        superWindowText.style.cssText = 'font-size: 20vh;text-align: center;line-height: 400px;';
-        superWindowText.innerHTML = "00-0";
-        HideSuperWindows();
+        
+            //Draw new element SuperWindow
+            superWindow = document.createElement("div");
+            superWindow.id = "superNumber";
+            document.body.appendChild(superWindow);
+            superWindowText = document.createElement("p");
+            superWindow.appendChild(superWindowText);
+            superWindowText.style.cssText = 'font-size: 16vh; text-align: center;line-height: 180px;';
+            superWindowText.innerHTML = "00-0";
+            //HideSuperWindows();
+            ShowSuperWindow();
     }
     
     function Speak(text) {
@@ -78,10 +75,8 @@
     }
     
     function ShowSuperWindow(){
-        // old
-        //superWindow.style.cssText = 'z-index:9999999999;position:fixed;display:table;align-items:center;top:calc(50% - 200px);left:100px;width:750px;height:400px;border-radius: 30px;-moz-border-radius:30px;background-color: #f2f2f2; Display: block;box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);';
-        // new
-        superWindow.style.cssText = 'z-index:9999999999;  position:fixed; display:table;  align-items:center;  top:calc(50% - 200px); left:100px;  width:750px; height:400px;  border-radius: 30px;  -moz-border-radius:30px;  Display: block;  background: rgb(215, 231, 245);  border: solid;  border-width: 30px; border-color: rgb( 232, 244, 255 );';
+        superWindow.style.cssText = 'position: fixed; left: 25px; bottom: 75px; display:table;  align-items:center;  width:450px; height:100px; background: rgb(215, 231, 245); z-index:9999999999; border: solid;  border-width: 30px; border-color: rgb( 255, 255, 255 );';
+
     }
     function HideSuperWindows(){
         superWindow.style.cssText = 'Display: none';
@@ -89,40 +84,17 @@
     
     function ObserverDetect(){
         console.log("REFRESH WAS DETECT");
-        
-        //
-        if (receiveMessageBlock.length == 0){
-            isRecieveActive = false;
-            HideSuperWindows();
-            messageObserver.disconnect();
-            console.log("MESSAGE OBSERVE STOPPED");
-        }
-        else{
-            isRecieveActive = true;
-            ShowSuperWindow();
-            Subscribe();
-            var element = receiveMessageBlock[0];
-            messageObserver.observe(element, {childList: true});
-            console.log("MESSAGE OBSERVE STARTED");
-        }
-    }
-
-    function MessageObserverDetect(){
-        console.log("MESSAGE WAS DETECT");
-
-        //
-        if (isRecieveActive){
-            if(receiveMessage[0] != null){
-                innerHTML = receiveMessage[0].children[1].innerHTML;
+        if(receiveMessage[0] != null){
+                innerHTML = receiveMessage[0].innerHTML;
                 console.log("innerHTML below: ");
                 console.log(innerHTML);
                 UpdateResult();
-            }
         }
     }
 
     function UpdateResult() {
         var match = innerHTML.match(regexMixed)[0];
+        console.log("match: " + match);
         //
         if (match == null || match == 'Undefined'){
             // Try recognition again
@@ -135,12 +107,12 @@
             if(match != prevMatch){
                 // Refresh superWindow
                 console.log("Refresh superWindow and speech text");
-                var result = match.match(regexResultFilter)[0];
+                //var result = match.match(regexResultFilter)[0];
+                var result = match;
                 superWindowText.innerHTML = result;
                 prevMatch = match;
                 Speak(result);
                 CanRepeatSpeech = false;
-                window.setTimeout(ResetTimer, 5000);
             }
             else{
                 console.log("match equal to prev match, do nothing");
@@ -173,27 +145,5 @@
         }
     }
 
-    var messageObserver = new MutationObserver(MessageObserverDetect);
-    //
-    console.log("MessageObserver created");
-        //reference:
-        //  messageObserver.observe(document.querySelectorAll(receiveMessageBlock)[0], {childList: true});
-        //  messageObserver.disconnect();
-
-
-    //
-    function ResetTimer(){
-        CanRepeatSpeech = true;
-    }
-
-    function Subscribe(){
-        autoreceiveXbutton_Listener = autoreceiveXbutton[0].addEventListener("click", HideSuperWindows);
-        autoreceiveEndButton_Listener = autoreceiveEndButton[8].addEventListener("click", HideSuperWindows);
-    }
-
-    function Unsubscribe(){
-        autoreceiveXbutton_Listener = null;
-        autoreceiveEndButton_Listener = null; // idk another method in this situation lmao
-    }
 
 })();
