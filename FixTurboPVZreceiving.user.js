@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.6.0
+// @version      0.7.0
 // @description  This script provides the convenience of work, which OZON cannot provide with a capital of more than 400 billion rubles.
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving/receive
@@ -16,20 +16,14 @@
     const receiveForkClassName = ".logs_kiV3I";
 
     // regex for find number
-    const regexMixed = /\d{1,5}-\d{1,3}|CUR-\d*/g;
+    const regexMixed = /\d{1,5}-\d{1,3}|CUR|\-\d+\/\d+/g;
 
-    //unusable now regex
-    const regexMixedOld = /'\d{1,5}-\d{1,3}'|'CUR-\d*'/g;
-	const regexUsusalOld = /'\d*\d-\d\d*'/g;
-    const regexCUROld = /'CUR-\d*'/g;
-    const regexResultFilter = /(?<=\').+?(?=\')/g;
 
     // fields
     var superWindow;
     var superWindowText;
     var innerHTML;
     var prevMatch;
-    var CanRepeatSpeech = true;
 
     var isRecieveActive;
 
@@ -45,7 +39,7 @@
     // ----------- Functions ------------
 
     function DrawSuperWindow(){
-        
+
             //Draw new element SuperWindow
             superWindow = document.createElement("div");
             superWindow.id = "superNumber";
@@ -57,23 +51,15 @@
             //HideSuperWindows();
             ShowSuperWindow();
     }
-    
+
     function Speak(text) {
-        var text1 = text.match(/\d+(?=\-)/);
-        var text2 = text.match(/[^-]*$/);
-        var textResult;
-        if( text1 == null | text1 == ""){
-            textResult = text2;
-        }
-        else{
-            textResult = text1 + " тире " + text2;
-        }
+
         const message = new SpeechSynthesisUtterance();
         message.lang = "ru-RU";
-        message.text = textResult;
+        message.text = text;
         window.speechSynthesis.speak(message)
     }
-    
+
     function ShowSuperWindow(){
         superWindow.style.cssText = 'position: fixed; left: 25px; bottom: 75px; display:table;  align-items:center;  width:450px; height:100px; background: rgb(215, 231, 245); z-index:9999999999; border: solid;  border-width: 30px; border-color: rgb( 255, 255, 255 );';
 
@@ -81,7 +67,7 @@
     function HideSuperWindows(){
         superWindow.style.cssText = 'Display: none';
     }
-    
+
     function ObserverDetect(){
         console.log("REFRESH WAS DETECT");
         if(receiveMessage[0] != null){
@@ -105,14 +91,53 @@
             console.log("clear match info: " + match);
             //
             if(match != prevMatch){
-                // Refresh superWindow
-                console.log("Refresh superWindow and speech text");
-                //var result = match.match(regexResultFilter)[0];
-                var result = match;
-                superWindowText.innerHTML = result;
-                prevMatch = match;
-                Speak(result);
-                CanRepeatSpeech = false;
+
+                if(match == match.match(/\d{1,5}-\d{1,3}/)){
+                    // Refresh superWindow
+                    console.log("Refresh superWindow and speech text");
+                    let result = match;
+                    superWindowText.innerHTML = result;
+                    prevMatch = match;
+                    //
+                    let text1 = result.match(/\d+(?=\-)/);
+                    let text2 = result.match(/[^-]*$/);
+                    let textResult;
+                    if( text1 == null | text1 == ""){
+                        textResult = text2;
+                    }
+                    else{
+                        textResult = text1 + " тире " + text2;
+                    }
+                    //
+                    Speak(textResult);
+                }
+                if(match == match.match(/CUR/)){
+                    // Refresh superWindow
+                    console.log("Refresh superWindow and speech text");
+                    let result = match;
+                    superWindowText.innerHTML = result;
+                    prevMatch = match;
+                    Speak("Курьерская доставка");
+                }
+                if(match == match.match(/\-\d+\/\d+/)){
+                    // Refresh superWindow
+                    console.log("Refresh superWindow and speech text");
+                    let result = match;
+                    superWindowText.innerHTML = result;
+                    prevMatch = match;
+                    //
+                    let text1 = result.match(/\d+(?=\/)/);
+                    let text2 = result.match(/[^\/]*$/);
+                    let textResult;
+                    if( text1 == null | text1 == ""){
+                        textResult = text2;
+                    }
+                    else{
+                        textResult = "Кур доставка" + text1 + " дробь " + text2;
+                    }
+                    //
+                    Speak(textResult);
+                }
             }
             else{
                 console.log("match equal to prev match, do nothing");
