@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ courier recmove
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.1.1
 // @description  This script provides the convenience of work, which OZON cannot provide with a capital of more than 400 billion rubles.
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/courier/recommendations
@@ -114,7 +114,26 @@
                 }
             }
             else{
-                console.log("match equal to prev match, do nothing");
+                console.log("match equal to prev match");
+                if(match == match.match(/\-\d+\/\d+/)){
+                    // Refresh superWindow
+                    console.log("Refresh superWindow and speech text");
+                    let result = match;
+                    superWindowText.innerHTML = result;
+                    prevMatch = match;
+                    //
+                    let text1 = result.match(/\d+(?=\/)/);
+                    let text2 = result.match(/[^\/]*$/);
+                    let textResult;
+                    if( text1 == null | text1 == ""){
+                        textResult = text2;
+                    }
+                    else{
+                        textResult = text1 + " дробь " + text2;
+                    }
+                    //
+                    Speak(textResult);
+                }
 
             }
 
