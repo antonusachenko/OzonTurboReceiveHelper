@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.7.0
+// @version      0.7.1
 // @description  This script provides the convenience of work, which OZON cannot provide with a capital of more than 400 billion rubles.
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving/receive
@@ -111,13 +111,15 @@
                     //
                     Speak(textResult);
                 }
-                if(match == match.match(/CUR/)){
+                if(match == match.match(/CUR-\d+/)){
                     // Refresh superWindow
                     console.log("Refresh superWindow and speech text");
                     let result = match;
+                    let text2 = result.match(/[^-]*$/);
                     superWindowText.innerHTML = result;
                     prevMatch = match;
-                    Speak("Курьерская доставка");
+                    textResult = "Курьерка номер" + text2;
+                    Speak(textResult);
                 }
                 if(match == match.match(/\-\d+\/\d+/)){
                     // Refresh superWindow
