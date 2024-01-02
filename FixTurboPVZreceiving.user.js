@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix TurboPVZ receiving
 // @namespace    http://tampermonkey.net/
-// @version      0.7.1
+// @version      0.7.2
 // @description  This script provides the convenience of work, which OZON cannot provide with a capital of more than 400 billion rubles.
 // @author       Usachenko Antony
 // @match        https://pvz.ozon-dostavka.ru/receiving/receive
@@ -16,7 +16,7 @@
     const receiveForkClassName = ".logs_kiV3I";
 
     // regex for find number
-    const regexMixed = /\d{1,5}-\d{1,3}|CUR|\-\d+\/\d+/g;
+    const regexMixed = /\d{1,5}-\d{1,3}|CUR-\d+|\-\d+\/\d+/g;
 
 
     // fields
